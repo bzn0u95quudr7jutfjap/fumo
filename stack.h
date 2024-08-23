@@ -1,7 +1,8 @@
-#include <stdlib.h>
 
 #ifndef STACK_TEMPLATE
 #define STACK_TEMPLATE
+
+#include <stdlib.h>
 
 #define declare_template_stack_internal(type, stack_type, new, free, resize,   \
                                         at, push, pop)                         \
@@ -50,6 +51,8 @@
     stack->size--;                                                             \
   }
 
+#ifndef __cplusplus
+
 #define declare_template_stack(type, stack)                                    \
   declare_template_stack_internal(type, stack, new_##stack, free_##stack,      \
                                   resize_##stack, at_##stack, push_##stack,    \
@@ -60,12 +63,16 @@
                                  resize_##stack, at_##stack, push_##stack,     \
                                  pop_##stack)
 
-#define declare_template_stack_cpp(type, stack)                                \
+#else
+
+#define declare_template_stack(type, stack)                                    \
   declare_template_stack_internal(type, stack, new_##stack, free, resize, at,  \
                                   push, pop)
 
-#define define_template_stack_cpp(type, stack)                                 \
+#define define_template_stack(type, stack)                                     \
   define_template_stack_internal(type, stack, new_##stack, free, resize, at,   \
                                  push, pop)
+
+#endif
 
 #endif // STACK_TEMPLATE
