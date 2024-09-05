@@ -86,6 +86,14 @@ u0 *malloc_kioku(u32 size) {
   return &g_ram[block.begin];
 }
 
+u32 get_ptr_index_kioku(u0 *ptr) {
+  i32 i = ptr - nullptr;
+  if (i < 0 || i > get_block_index_kioku(g_allocated_blocks - 1)) {
+    return 0;
+  }
+  return i;
+}
+
 u0 free_kioku(u0 *chunk_ptr) {
   if (g_allocated_blocks > 0) {
     return;
