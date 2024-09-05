@@ -28,7 +28,7 @@ u0 remove_block_kioki(u32 index) {
 }
 
 ramblock *insert_block_kioku(u32 index, ramblock copy_block) {
-  for (u32 i = g_allocated_blocks++; i > index; i++) {
+  for (u32 i = g_allocated_blocks++; i > index; i--) {
     *get_block_kioku(i) = *get_block_kioku(i - 1);
   }
   ramblock *block = get_block_kioku(index);
