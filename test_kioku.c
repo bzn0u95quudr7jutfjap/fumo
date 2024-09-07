@@ -5,7 +5,18 @@
 u0 print_block(ramblock *block) {
   ramblock a = {.begin = 0, .end = 0};
   block = block ? block : &a;
-  printf("ramblock@%p{.begin=%d,.end=%d}\n", block, block->begin, block->end);
+  printf("ramblock@%p{.begin=%d,.end=%d}", block == &a ? nullptr : block,
+         block->begin, block->end);
+}
+
+u0 print_memory_blocks() {
+  printf("Memory Blocks {\n");
+  for (u32 i = 0; i < g_allocated_blocks; i++) {
+    printf("\t");
+    print_block(get_block_kioku(i));
+    printf("\n");
+  }
+  printf("}\n");
 }
 
 u0 print_status(u8 e) { printf("[%3s] :: ", e ? "OK " : "ERR"); }
@@ -36,7 +47,7 @@ typedef struct {
   ramblock a[1 << 6];
 } ramblock_array;
 
-u0 test_insert_block_kioku(u32 i, u32 bb, u32 be) {
+u0 test_insert_block_kioku2(u32 i, u32 bb, u32 be) {
   static ramblock pile[1 << 6] = {};
   for (u32 j = g_allocated_blocks; j > i; i--) {
     pile[j] = pile[j - 1];
@@ -65,6 +76,41 @@ u0 test_insert_block_kioku(u32 i, u32 bb, u32 be) {
   printf("test_insert_block :: ERR :: END\n");
 }
 
+u0 empty_memory() {
+  while (g_allocated_blocks > 0) {
+    remove_block_kioku(g_allocated_blocks - 1);
+  }
+}
+
+u0 set_memory_state(u32 len, ramblock blocks[]) {
+  empty_memory();
+  g_allocated_blocks = len;
+  for (u32 i = 0; i < len; i++) {
+    *get_block_kioku(i) = blocks[i];
+  }
+}
+
+u8 is_memory_state(u32 len, ramblock blocks[]) {
+  if (len != g_allocated_blocks) {
+    return 0;
+  }
+  for (u32 i = 0; i < len; i++) {
+    if (!equals_ramblock(get_block_kioku(i), &blocks[i])) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+u0 test_insert_block_kioku(u32 i, ramblock block, u32 len_init,
+                           ramblock blocks_init[], u32 len_stop,
+                           ramblock blocks_stop[]) {
+  set_memory_state(len_init, blocks_init);
+  insert_block_kioku(i, block);
+  print_status(is_memory_state(len_stop, blocks_stop));
+  printf("test_get_ptr_index\n");
+}
+
 int main(int argc, char *argv[]) {
 
   printf("\n");
@@ -88,6 +134,32 @@ int main(int argc, char *argv[]) {
   test_get_ptr_index_kioku((u0 *)&g_ram[200], 200);
 
   printf("\n");
+
+  test_insert_block_kioku(2, (ramblock){.begin = 33, .end = 66}, 4,
+                          (ramblock[]){
+                              {.begin = 1, .end = 6},
+                              {.begin = 6, .end = 12},
+                              {.begin = 12, .end = 18},
+                              {.begin = 18, .end = 24},
+                          },
+                          5,
+                          (ramblock[]){
+                              {.begin = 1, .end = 6},
+                              {.begin = 6, .end = 12},
+                              {.begin = 33, .end = 66},
+                              {.begin = 12, .end = 18},
+                              {.begin = 18, .end = 24},
+                          });
+  test_insert_block_kioku(0, (ramblock){.begin = 1, .end = 2}, 0,
+                          (ramblock[]){}, 1,
+                          (ramblock[]){
+                              {.begin = 1, .end = 2},
+                          });
+  test_insert_block_kioku(4, (ramblock){.begin = 1, .end = 2}, 0,
+                          (ramblock[]){}, 1,
+                          (ramblock[]){
+                              {.begin = 1, .end = 2},
+                          });
 
   return 0;
 }
