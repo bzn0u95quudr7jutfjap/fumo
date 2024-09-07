@@ -49,32 +49,36 @@ u0 empty_memory() {
   }
 }
 
-u0 set_memory_state(u32 len, ramblock blocks[]) {
+typedef struct {
+  u32 len;
+  ramblock blocks[1 << 7];
+} memory_state;
+
+u0 set_memory_state(memory_state *state) {
   empty_memory();
-  g_allocated_blocks = len;
-  for (u32 i = 0; i < len; i++) {
-    *get_block_kioku(i) = blocks[i];
+  g_allocated_blocks = state->len;
+  for (u32 i = 0; i < state->len; i++) {
+    *get_block_kioku(i) = state->blocks[i];
   }
 }
 
-u8 is_memory_state(u32 len, ramblock blocks[]) {
-  if (len != g_allocated_blocks) {
+u8 is_memory_state(memory_state *state) {
+  if (state->len != g_allocated_blocks) {
     return 0;
   }
-  for (u32 i = 0; i < len; i++) {
-    if (!equals_ramblock(get_block_kioku(i), &blocks[i])) {
+  for (u32 i = 0; i < state->len; i++) {
+    if (!equals_ramblock(get_block_kioku(i), &state->blocks[i])) {
       return 0;
     }
   }
   return 1;
 }
 
-u0 test_insert_block_kioku(u32 i, ramblock block, u32 len_init,
-                           ramblock blocks_init[], u32 len_stop,
-                           ramblock blocks_stop[]) {
-  set_memory_state(len_init, blocks_init);
+u0 test_insert_block_kioku(u32 i, ramblock block, memory_state init,
+                           memory_state stop) {
+  set_memory_state(&init);
   insert_block_kioku(i, block);
-  print_status(is_memory_state(len_stop, blocks_stop));
+  print_status(is_memory_state(&stop));
   printf("test_insert_block_kioku\n");
 }
 
@@ -102,31 +106,35 @@ int main(int argc, char *argv[]) {
 
   printf("\n");
 
-  test_insert_block_kioku(2, (ramblock){.begin = 33, .end = 66}, 4,
-                          (ramblock[]){
-                              {.begin = 1, .end = 6},
-                              {.begin = 6, .end = 12},
-                              {.begin = 12, .end = 18},
-                              {.begin = 18, .end = 24},
-                          },
-                          5,
-                          (ramblock[]){
-                              {.begin = 1, .end = 6},
-                              {.begin = 6, .end = 12},
-                              {.begin = 33, .end = 66},
-                              {.begin = 12, .end = 18},
-                              {.begin = 18, .end = 24},
-                          });
-  test_insert_block_kioku(0, (ramblock){.begin = 1, .end = 2}, 0,
-                          (ramblock[]){}, 1,
-                          (ramblock[]){
-                              {.begin = 1, .end = 2},
-                          });
-  test_insert_block_kioku(4, (ramblock){.begin = 1, .end = 2}, 0,
-                          (ramblock[]){}, 1,
-                          (ramblock[]){
-                              {.begin = 1, .end = 2},
-                          });
+  test_insert_block_kioku(2, (ramblock){.begin = 33, .end = 66},
+                          (memory_state){.len = 4,
+                                         .blocks =
+                                             {
+                                                 {.begin = 1, .end = 6},
+                                                 {.begin = 6, .end = 12},
+                                                 {.begin = 12, .end = 18},
+                                                 {.begin = 18, .end = 24},
+                                             }},
+                          (memory_state){.len = 5,
+                                         .blocks = {
+                                             {.begin = 1, .end = 6},
+                                             {.begin = 6, .end = 12},
+                                             {.begin = 33, .end = 66},
+                                             {.begin = 12, .end = 18},
+                                             {.begin = 18, .end = 24},
+                                         }});
+  test_insert_block_kioku(0, (ramblock){.begin = 1, .end = 2},
+                          (memory_state){.len = 0, .blocks = {}},
+                          (memory_state){.len = 1,
+                                         .blocks = {
+                                             {.begin = 1, .end = 2},
+                                         }});
+  test_insert_block_kioku(4, (ramblock){.begin = 1, .end = 2},
+                          (memory_state){.len = 0, .blocks = {}},
+                          (memory_state){.len = 1,
+                                         .blocks = {
+                                             {.begin = 1, .end = 2},
+                                         }});
 
   printf("\n");
 
