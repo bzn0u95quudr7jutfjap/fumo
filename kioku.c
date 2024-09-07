@@ -21,17 +21,21 @@ ramblock *get_block_kioku(u32 i) {
   return (ramblock *)&g_ram[get_block_index_kioku(i)];
 }
 
-u0 remove_block_kioki(u32 index) {
-  for (u32 i = g_allocated_blocks--; i > index; i--) {
+u0 remove_block_kioku(u32 j) {
+  if (j > g_allocated_blocks) {
+    return;
+  }
+  for (u32 i = g_allocated_blocks--; i > j; i--) {
     *get_block_kioku(i - 1) = *get_block_kioku(i);
   }
 }
 
-ramblock *insert_block_kioku(u32 index, ramblock copy_block) {
-  for (u32 i = g_allocated_blocks++; i > index; i--) {
+ramblock *insert_block_kioku(u32 j, ramblock copy_block) {
+  j = j > g_allocated_blocks ? g_allocated_blocks : j;
+  for (u32 i = g_allocated_blocks++; i > j; i--) {
     *get_block_kioku(i) = *get_block_kioku(i - 1);
   }
-  ramblock *block = get_block_kioku(index);
+  ramblock *block = get_block_kioku(j);
   *block = copy_block;
   return block;
 }
@@ -105,7 +109,7 @@ u0 free_kioku(u0 *chunk_ptr) {
   for (u32 i = 0; i < g_allocated_blocks; i++) {
     ramblock *block = get_block_kioku(i);
     if (block->begin <= chunk && chunk <= block->end) {
-      return remove_block_kioki(i);
+      return remove_block_kioku(i);
     }
   }
 }
