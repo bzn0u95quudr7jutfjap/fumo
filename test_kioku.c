@@ -75,7 +75,7 @@ u0 test_insert_block_kioku(u32 i, ramblock block, u32 len_init,
   set_memory_state(len_init, blocks_init);
   insert_block_kioku(i, block);
   print_status(is_memory_state(len_stop, blocks_stop));
-  printf("test_get_ptr_index\n");
+  printf("test_insert_block_kioku\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -127,6 +127,8 @@ int main(int argc, char *argv[]) {
                           (ramblock[]){
                               {.begin = 1, .end = 2},
                           });
+
+  printf("\n");
 
   return 0;
 }
